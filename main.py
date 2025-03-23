@@ -12,7 +12,7 @@ bot = telebot.TeleBot(TG_TOKEN)
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    bot.send_message(message.chat.id, 'Привет! Я - генератор мемов. Для начала отправь картинку - основу мема.')
+    bot.send_message(message.chat.id, f'Привет, {message.from_user.first_name}! Я - генератор мемов. Для начала отправь картинку - основу мема.')
 
 
 # обработчик сообщений с фотографиями
@@ -23,7 +23,7 @@ def handle_photo(message):
     with open('photo.jpg', 'wb') as new_file:
         new_file.write(downloaded_file)
 
-    bot.send_message(message.chat.id, "Фото успешно сохранено.Теперь напиши текст, который будет на фотке")
+    bot.send_message(message.chat.id, f"{message.from_user.first_name}, отличное фото! Теперь давай добавим текст")
     bot.register_next_step_handler(message, set_photo_text)
 
 
@@ -36,68 +36,55 @@ def set_photo_text(message):
         h = 60
         font = ImageFont.truetype('ARIAL.TTF', h)  # убеждаемся, что файл находится в рабочем каталоге
         text = message.text
+        bbox = draw.textbbox((0, 0), text.upper(), font=font)
+        text_width = bbox[2] - bbox[0]
 
-        if len(text) > 17:
-            ans = []
-            text_2 = text.split(" ")
-            count = 0
-            i = 0
-            go = True
-            text = text_2[0]
-            while go:
+        ans = []
+        text_2 = text.split()
 
-                if i < len(text_2) - 1:
+        i = 1
+        go = True
+        text = text_2[0]
+        while go:
 
-                    if len(text) + len(text_2[i + 1]) < 15:
-                        text = text + " " + text_2[i + 1]
-                        print(text)
+            if i < len(text_2):
+                if (text_2[i][0]).isalpha():
+                    prov = text + text_2[i]
+                    bbox = draw.textbbox((0, 0), prov.upper(), font=font)
+                    text_width = bbox[2] - bbox[0]
+                    if text_width + 60 < image.width:
+                        text = text + " " + text_2[i]
                         i += 1
                     else:
-                        if len(text_2[i + 1]) == 1:
-                            text = text + " " + text_2[i + 1]
-                            i += 1
                         text = text.upper()
-                        if len(text) > count:
-                            count = len(text)
-                        i += 1
                         ans.append(text)
                         text = text_2[i]
-                elif i == len(text_2) - 1:
-                    text_2[i] = text_2[i].upper()
-                    if len(text_2[i]) > count:
-                        count = len(text_2[i])
-                    ans.append(text_2[i])
-                    text = text_2[i]
-                    go = False
+                        i += 1
                 else:
-                    go = False
-            n = len(ans)
+                    text = text + " " + text_2[i]
+                    i += 1
 
-            for i in ans:
-                bbox = draw.textbbox((0, 0), i, font=font)
-                text_width = bbox[2] - bbox[0]
-                text_height = bbox[3] - bbox[1]
-                b = (h+20) * n
-                x = (image.width - text_width) / 2
-                y = image.height - b
-                n -= 1
-                draw.rectangle((x - 10, y, x + text_width + 10, y + text_height + 20), fill=(255, 255, 255, 255))
-                draw.text((x, y), i, font=font, fill=(0, 0, 0))
-                image.save('result.jpg')
 
-            bot.send_photo(message.chat.id, open('result.jpg', 'rb'))
-        else:
+            else:
+                text = text.upper()
+                ans.append(text)
+                go = False
+        n = len(ans)
 
-            bbox = draw.textbbox((0, 0), text.upper(), font=font)
+        for i in ans:
+            bbox = draw.textbbox((0, 0), i, font=font)
             text_width = bbox[2] - bbox[0]
             text_height = bbox[3] - bbox[1]
+            b = (h+20) * n
             x = (image.width - text_width) / 2
-            y = image.height - text_height - 30
-            draw.rectangle((x - 10, y, x + text_width + 10, y + text_height + 20), fill=(255, 255, 255, 255))
-            draw.text((x, y), text.upper(), font=font, fill=(0, 0, 0))
+            y = image.height - b
+            n -= 1
+            draw.rectangle((x - 10, y, x + text_width + 10, y + h*1.1 ), fill=(255, 255, 255, 255))
+            draw.text((x, y), i, font=font, fill=(0, 0, 0))
             image.save('result.jpg')
-            with open('result.jpg', 'rb') as photo:
-                bot.send_photo(message.chat.id, photo)
+
+        bot.send_photo(message.chat.id, open('result.jpg', 'rb'))
+
     except Exception as e:
         bot.send_message(message.chat.id, 'Произошла ошибка, попробуй снова')
         print(e)
