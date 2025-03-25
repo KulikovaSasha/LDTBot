@@ -1,8 +1,6 @@
 # https://replit.com/@vmgoryachkin/IntelligentShoddyCgibin#main.py
 # https://desktop.telegram.org/
-from background import keep_alive #импорт функции для поддержки работоспособности
-import pip
-pip.main(['install', 'pytelegrambotapi'])
+
 import telebot
 from telebot import types
 from PIL import Image, ImageDraw, ImageFont
@@ -120,5 +118,4 @@ def set_photo_text(message,position):
 
 
 
-keep_alive()#запускаем flask-сервер в отдельном потоке. Подробнее ниже...
-bot.polling(non_stop=True, interval=0) #запуск бота
+bot.polling(non_stop=True) #запуск бота
