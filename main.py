@@ -1,14 +1,11 @@
 # https://replit.com/@vmgoryachkin/IntelligentShoddyCgibin#main.py
 # https://desktop.telegram.org/
-import os
 from background import keep_alive #импорт функции для поддержки работоспособности
 import pip
 pip.main(['install', 'pytelegrambotapi'])
 import telebot
-import time
 from telebot import types
 from PIL import Image, ImageDraw, ImageFont
-from telebot.types import InlineKeyboardButton
 
 from settings import TG_TOKEN
 
