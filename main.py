@@ -32,44 +32,92 @@ def handle_photo(message):
     markup.row(btn1, btn2)
     bot.reply_to(message, f"{message.from_user.first_name}, отличное фото! Давай решим, где будет находиться надпись",
                  reply_markup=markup)
-
+    position = 0
+    k = 16
+    color = 0
     @bot.callback_query_handler(func=lambda callback: True)
     def callback_message(callback):
+        global position
+        global k
+        global color
         if callback.data == 'top':
             bot.send_message(message.chat.id, f"Хорошо! Теперь отправь мне текст")
             position = 'top'
-            bot.register_next_step_handler(message, set_photo_text, position)
+            k = 16
+            color = 0
+            bot.register_next_step_handler(message, set_photo_text, position, k, color)
 
         elif callback.data == 'bottom':
             bot.send_message(message.chat.id, f"Хорошо! Теперь отправь мне текст")
             position = 'bottom'
-            bot.register_next_step_handler(message, set_photo_text, position)
+            k = 16
+            color = 0
+            bot.register_next_step_handler(message, set_photo_text, position, k,color)
 
+            #оцениваем результат
+        elif callback.data == 'yes':
+            bot.send_message(message.chat.id, f"Отлично! Буду рад увидеться снова!")
+            #изменяем надпись
+        elif callback.data == 'no':
+            markup = types.InlineKeyboardMarkup(row_width=2)
+            btn5 = types.InlineKeyboardButton('Уменьшить шрифт', callback_data='correct_1')
+            btn6 = types.InlineKeyboardButton('Увеличить шрифт', callback_data='correct_2')
+            if color == 0:
+                btn7 = types.InlineKeyboardButton('Изменить цвет шрифта', callback_data='correct_3_1')
+            else:
+                btn7 = types.InlineKeyboardButton('Сменить цвет шрифта', callback_data='correct_3_2')
+            if position == 'top':
+                btn8 = types.InlineKeyboardButton('Сделать надпись внизу', callback_data='correct_4')
+            else:
+                btn8 = types.InlineKeyboardButton('Сделать надпись вверху', callback_data='correct_5')
+            markup.row(btn5, btn6)
+            markup.row(btn7, btn8)
+            bot.send_message(message.chat.id, f"Что бы ты хотел исправить?",
+                             reply_markup=markup)
+        elif callback.data == 'correct_1':
+            k *= 1.5
+            bot.send_message(message.chat.id, f"Хорошо, введи, пожалуйста, текст заново")
+            bot.register_next_step_handler(message, set_photo_text, position, k, color)
+        elif callback.data == 'correct_2':
+            k /= 1.5
+            bot.send_message(message.chat.id, f"Хорошо, введи, пожалуйста, текст заново")
+            bot.register_next_step_handler(message, set_photo_text, position, k, color)
+        elif callback.data == 'correct_3_1':
+            color = 1
+            bot.send_message(message.chat.id, f"Хорошо, введи, пожалуйста, текст заново")
+            bot.register_next_step_handler(message, set_photo_text, position, k, color)
+        elif callback.data == 'correct_3_2':
+            color = 0
+            bot.send_message(message.chat.id, f"Хорошо, введи, пожалуйста, текст заново")
+            bot.register_next_step_handler(message, set_photo_text, position, k, color)
+        elif callback.data == 'correct_4':
+            position = 'bottom'
+            bot.send_message(message.chat.id, f"Хорошо, введи, пожалуйста, текст заново")
+            bot.register_next_step_handler(message, set_photo_text, position, k, color)
+        elif callback.data == 'correct_5':
+            position = 'top'
+            bot.send_message(message.chat.id, f"Хорошо, введи, пожалуйста, текст заново")
+            bot.register_next_step_handler(message, set_photo_text, position, k, color)
 
 # обработчик текста
-def set_photo_text(message, position):
+def set_photo_text(message, position, k, color):
     try:
         image = Image.open('photo.jpg')
         draw = ImageDraw.Draw(image)
-        # загрузка шрифта, поддерживающего кириллицу
-
-        h = 60
+            # загрузка шрифта, поддерживающего кириллицу
+        h = image.height/k
         font = ImageFont.truetype('CactusClassicalSerif-Regular.ttf',
-                                  h)  # убеждаемся, что файл находится в рабочем каталоге
+                                          h)  # убеждаемся, что файл находится в рабочем каталоге
 
-        # накладываем текст на фото
+            # накладываем текст на фото
         text = message.text
-        bbox = draw.textbbox((0, 0), text.upper(), font=font)
-        # text_width = bbox[2] - bbox[0]
-
+        text_3 = text
         ans = []
         text_2 = text.split()
-
         i = 1
         go = True
         text = text_2[0]
         while go:
-
             if i < len(text_2):
                 if (text_2[i][0]).isalpha():
                     prov = text + text_2[i]
@@ -99,7 +147,6 @@ def set_photo_text(message, position):
         for i in ans:
             bbox = draw.textbbox((0, 0), i, font=font)
             text_width = bbox[2] - bbox[0]
-            # text_height = bbox[3] - bbox[1]
             b = (h + 20) * n
             x = (image.width - text_width) / 2
             if position == 'bottom':
@@ -108,25 +155,26 @@ def set_photo_text(message, position):
             elif position == 'top':
                 y = 20 + b
                 n += 1
-
-            draw.rectangle((x - 8, y, x + text_width + 10, y + h * 1.2), fill=(255, 255, 255, 255))
-            draw.text((x, y), i, font=font, fill=(0, 0, 0))
+            if color == 0:
+                draw.rectangle((x - 8, y, x + text_width + 10, y + h * 1.2), fill=(255, 255, 255, 255))
+                draw.text((x, y), i, font=font, fill=(0, 0, 0))
+            else:
+                draw.rectangle((x - 8, y, x + text_width + 10, y + h * 1.2), fill=(0, 0, 0, 0))
+                draw.text((x, y), i, font=font, fill=(255, 255, 255))
             image.save('result.jpg')
 
+
         bot.send_photo(message.chat.id, open('result.jpg', 'rb'))
-
-        # оцениваем результат
-        markup = types.InlineKeyboardMarkup()
-        btn3 = types.InlineKeyboardButton('Да', callback_data='yes')
-        btn4 = types.InlineKeyboardButton('Нет', callback_data='no')
+        bot.send_message(message.chat.id, f"Готово!")
+        markup = types.InlineKeyboardMarkup(row_width=2)
+        btn3 = types.InlineKeyboardButton('Да, оставляем так', callback_data='yes')
+        btn4 = types.InlineKeyboardButton('Нет, хочу переделать', callback_data='no')
         markup.row(btn3, btn4)
-        bot.send_message(message.chat.id, f"{message.from_user.first_name}, готово! Оставляем такой результат?",
-                         reply_markup=markup)
-
+        bot.send_message(message.chat.id, f"{message.from_user.first_name}, тебе нравится?",
+                                 reply_markup=markup)
 
     except Exception as e:
         bot.send_message(message.chat.id, 'Произошла ошибка, попробуй снова')
         print(e)
-
 
 bot.polling(non_stop=True)  # запуск бота
