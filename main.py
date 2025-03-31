@@ -59,21 +59,23 @@ def handle_photo(message):
             #оцениваем результат
         elif callback.data == 'yes':
             bot.send_message(message.chat.id, f"Отлично! Буду рад увидеться снова!")
-            #изменяем надпись
         elif callback.data == 'no':
+            # добавляем кнопки для изменения результата
             markup = types.InlineKeyboardMarkup(row_width=2)
             btn5 = types.InlineKeyboardButton('Уменьшить шрифт', callback_data='correct_1')
             btn6 = types.InlineKeyboardButton('Увеличить шрифт', callback_data='correct_2')
             if color == 0:
                 btn7 = types.InlineKeyboardButton('Изменить цвет шрифта', callback_data='correct_3_1')
             else:
-                btn7 = types.InlineKeyboardButton('Сменить цвет шрифта', callback_data='correct_3_2')
+                btn7 = types.InlineKeyboardButton('Изменить цвет шрифта', callback_data='correct_3_2')
             if position == 'top':
                 btn8 = types.InlineKeyboardButton('Сделать надпись внизу', callback_data='correct_4')
             else:
                 btn8 = types.InlineKeyboardButton('Сделать надпись вверху', callback_data='correct_5')
+            btn9 = types.InlineKeyboardButton('Изменить текст', callback_data='correct_6')
             markup.row(btn5, btn6)
             markup.row(btn7, btn8)
+            markup.row(btn9)
             bot.send_message(message.chat.id, f"Что бы ты хотел исправить?",
                              reply_markup=markup)
         elif callback.data == 'correct_1':
@@ -94,7 +96,10 @@ def handle_photo(message):
         elif callback.data == 'correct_5':
             position = 'top'
             set_photo_text(message, position, k, color)
-
+        elif callback.data == 'correct_6':
+            text = 0
+            bot.send_message(message.chat.id, f"Хорошо! Введи новый текст")
+            bot.register_next_step_handler(message, set_photo_text, position, k, color)
 
 # обработчик текста
 def set_photo_text(message, position, k, color):
@@ -110,32 +115,33 @@ def set_photo_text(message, position, k, color):
             # накладываем текст на фото
         if text == 0:
             text = message.text
+        text_3 = text
         ans = []
         text_2 = text.split()
         i = 1
         go = True
-        text = text_2[0]
+        text_1 = text_2[0]
         while go:
             if i < len(text_2):
                 if (text_2[i][0]).isalpha():
-                    prov = text + text_2[i]
+                    prov = text_1 + text_2[i]
                     bbox = draw.textbbox((0, 0), prov.upper(), font=font)
                     text_width = bbox[2] - bbox[0]
                     if text_width + 60 < image.width:
-                        text = text + " " + text_2[i]
+                        text_1 = text_1 + " " + text_2[i]
                         i += 1
                     else:
-                        text = text.upper()
-                        ans.append(text)
-                        text = text_2[i]
+                        text_1 = text_1.upper()
+                        ans.append(text_1)
+                        text_1 = text_2[i]
                         i += 1
                 else:
-                    text = text + " " + text_2[i]
+                    text_1 = text_1 + " " + text_2[i]
                     i += 1
 
             else:
-                text = text.upper()
-                ans.append(text)
+                text_1 = text_1.upper()
+                ans.append(text_1)
                 go = False
         if position == 'bottom':
             n = len(ans)
@@ -171,7 +177,7 @@ def set_photo_text(message, position, k, color):
         bot.send_message(message.chat.id, f"{message.from_user.first_name}, тебе нравится?",
                                  reply_markup=markup)
 
-        return text
+        return text_3
 
     except Exception as e:
         bot.send_message(message.chat.id, 'Произошла ошибка, попробуй снова')
