@@ -1,4 +1,4 @@
-# https://replit.com/@vmgoryachkin/IntelligentShoddyCgibin#main.py
+
 # https://desktop.telegram.org/
 
 import telebot
@@ -10,14 +10,11 @@ from settings import TG_TOKEN
 # инициализация бота
 bot = telebot.TeleBot(TG_TOKEN)
 
-
 @bot.message_handler(commands=['start'])
 def start(message):
     bot.send_message(message.chat.id,
                      f'Привет, {message.from_user.first_name}! Я умею добавлять текст на фото. Если хочешь попробовать, отправь картинку')
 
-text = 0
-text_3 = 0
 # обработчик сообщений с фотографиями
 @bot.message_handler(content_types=['photo'])
 def handle_photo(message):
@@ -36,6 +33,7 @@ def handle_photo(message):
     position = 0
     k = 16
     color = 0
+    text = 0
     @bot.callback_query_handler(func=lambda callback: True)
     def callback_message(callback):
         global position
@@ -47,6 +45,7 @@ def handle_photo(message):
             position = 'top'
             k = 16
             color = 0
+            text = 0
             bot.register_next_step_handler(message, set_photo_text, position, k, color)
 
         elif callback.data == 'bottom':
@@ -54,6 +53,7 @@ def handle_photo(message):
             position = 'bottom'
             k = 16
             color = 0
+            text = 0
             bot.register_next_step_handler(message, set_photo_text, position, k,color)
 
             #оцениваем результат
@@ -115,7 +115,6 @@ def set_photo_text(message, position, k, color):
             # накладываем текст на фото
         if text == 0:
             text = message.text
-        text_3 = text
         ans = []
         text_2 = text.split()
         i = 1
@@ -177,7 +176,7 @@ def set_photo_text(message, position, k, color):
         bot.send_message(message.chat.id, f"{message.from_user.first_name}, тебе нравится?",
                                  reply_markup=markup)
 
-        return text_3
+        return text
 
     except Exception as e:
         bot.send_message(message.chat.id, 'Произошла ошибка, попробуй снова')
