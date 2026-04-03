@@ -5,7 +5,12 @@ import telebot
 from telebot import types
 from PIL import Image, ImageDraw, ImageFont
 
-from settings import TG_TOKEN
+from config import TG_TOKEN
+
+from telebot import apihelper
+
+apihelper.CONNECT_TIMEOUT = 180
+apihelper.READ_TIMEOUT = 60
 
 # инициализация бота
 bot = telebot.TeleBot(TG_TOKEN)
@@ -182,4 +187,5 @@ def set_photo_text(message, position, k, color):
         bot.send_message(message.chat.id, 'Произошла ошибка, попробуй снова')
         print(e)
 
-bot.polling(non_stop=True)  # запуск бота
+if __name__ == "__main__":
+    bot.infinity_polling(timeout=60, long_polling_timeout=60)  # запуск бота
