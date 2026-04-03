@@ -1,5 +1,7 @@
-settings.py
 .venv/
 __pycache__/
 *.pyc
 .env
+.idea/
+photo.jpg
+result.jpg
