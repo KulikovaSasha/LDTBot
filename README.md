@@ -29,12 +29,30 @@ The bot allows a user to send a photo, choose where the text should appear, ente
 
 ```
 LDTBot/
-│── main.py
-│── config.py
-│── requirements.txt
-│── .env.example
-│── README.md
-│── CactusClassicalSerif-Regular.ttf
+│
+├── handlers/ # Message and callback handlers
+│ ├── init.py
+│ ├── messages.py
+│ └── callbacks.py
+│
+├── keyboards/ # Inline keyboards
+│ ├── init.py
+│ └── inline.py
+│
+├── services/ # Business logic and services
+│ ├── init.py
+│ ├── image_service.py
+│ └── state_service.py
+│
+├── generated/ # Generated images (ignored by Git)
+│
+├── .env.example # Example environment variables
+├── .gitignore
+├── config.py # Configuration loader
+├── main.py # Bot entry point
+├── requirements.txt # Project dependencies
+├── README.md
+└── CactusClassicalSerif-Regular.ttf # Font used for text rendering
 ```
 
 ## Installation
