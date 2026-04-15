@@ -1,7 +1,16 @@
+# Virtual environment
 .venv/
+
+# Environment variables
+.env
+
+# Python cache
 __pycache__/
 *.pyc
-.env
+
+# Generated images
+generated/
+
+# IDE settings
 .idea/
-photo.jpg
-result.jpg
+.vscode/
