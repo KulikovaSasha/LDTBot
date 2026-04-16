@@ -1,4 +1,4 @@
-# LDTBot
+# 📸 TextOnPhoto
 
 Telegram bot for adding custom text to images.
 
